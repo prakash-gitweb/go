@@ -18,8 +18,8 @@ type Pip struct {
 	Value  float32 `json:"value"`
 }
 
-func IbDeposit(ticket *uint, vol *float32, symbol *string, account *uint) bool {
-	volume := *vol / 100
+func IbDeposit(ticket *int, account *int, symbol *string, vol *int) bool {
+	var volume float32 = float32(*vol) / 100
 	// Logging transaction
 	const layout = "02-01-2006"
 	t := time.Now()
@@ -43,7 +43,7 @@ func IbDeposit(ticket *uint, vol *float32, symbol *string, account *uint) bool {
 			x := agentData.Rebate
 			rebate := x - y
 			pip := getPip(*symbol)
-			commission := pip * *vol * rebate / 10000
+			commission := pip * volume * rebate / 100
 			model.UpdateAgent(&agent, &commission, &volume)
 			model.CreateOrUpdateAgentTx(&agent, account, &commission, &volume)
 			y = x

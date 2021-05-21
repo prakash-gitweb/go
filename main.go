@@ -6,11 +6,10 @@ import (
 )
 
 type order struct {
-	ticket  uint
-	volume  float32
+	ticket  int
+	volume  int
 	symbol  string
-	account uint
-	price   float32
+	account int
 }
 
 func main() {
@@ -19,8 +18,7 @@ func main() {
 		volume:  100,
 		symbol:  "EURUSD.ecn",
 		account: 444499,
-		price:   1.120098,
 	}
-	execute := lib.IbDeposit(&closed.ticket, &closed.volume, &closed.symbol, &closed.account)
+	execute := lib.IbDeposit(&closed.ticket, &closed.account, &closed.symbol, &closed.volume)
 	fmt.Println(execute)
 }

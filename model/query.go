@@ -24,7 +24,7 @@ type AgentData struct {
 	Agent     uint
 }
 
-func GetAccount(account *uint) Account {
+func GetAccount(account *int) Account {
 	db := dbConnect() // Connection to database
 	var data Account
 	err := db.QueryRow("SELECT type, agent FROM live_accounts where account_no = ?", account).Scan(&data.Type, &data.Agent)
@@ -43,7 +43,7 @@ func UpdateAgent(agent *uint, commission *float32, volume *float32) bool {
 	defer update.Close()
 	return true
 }
-func CreateOrUpdateAgentTx(agent *uint, account *uint, commission *float32, volume *float32) bool {
+func CreateOrUpdateAgentTx(agent *uint, account *int, commission *float32, volume *float32) bool {
 	db := dbConnect() // Connection to database
 	rows, err := db.Query("SELECT COUNT(*) as count FROM ib_tx where account = ? AND agent = ?", account,agent)
 	checkErr(err)
