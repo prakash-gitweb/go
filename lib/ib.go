@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
@@ -14,21 +13,13 @@ import (
 	"time"
 )
 
-type agent struct {
-	rebate    float32
-	available float32
-	volume    float32
-	agent     uint
-}
 type Pip struct {
 	Symbol string  `json:"symbol"`
 	Value  float32 `json:"value"`
 }
 
 func IbDeposit(ticket *uint, vol *float32, symbol *string, account *uint) bool {
-
-	a := model.GetAccount(account)
-
+	volume := *vol / 100
 	// Logging transaction
 	const layout = "02-01-2006"
 	t := time.Now()
@@ -40,35 +31,30 @@ func IbDeposit(ticket *uint, vol *float32, symbol *string, account *uint) bool {
 	}
 	defer f.Close()
 	logger := log.New(f, "", log.LstdFlags)
-	logger.Println("ticket:", *ticket, "account:", *account, "symbol:", *symbol, "volume:", *vol)
-	// log the transactions in logs folder
-
+	logger.Println("ticket:", *ticket, "account:", *account, "symbol:", *symbol, "volume:", volume)
+	
+	a := model.GetAccount(account) // Rebate distribution starts
 	if a.Agent > 0 {
 		var totalRebate float32
 		var y float32
 		agent := a.Agent
 		for {
-			agentData := getAgent(agent)
-			x := agentData.rebate
+			agentData := model.GetAgentOfAgent(&agent)
+			x := agentData.Rebate
 			rebate := x - y
 			pip := getPip(*symbol)
 			commission := pip * *vol * rebate / 10000
-			volume := *vol / 100
 			model.UpdateAgent(&agent, &commission, &volume)
-
+			model.CreateOrUpdateAgentTx(&agent, account, &commission, &volume)
 			y = x
 			totalRebate += rebate
-
 			fmt.Println(totalRebate)
 			logger.Printf("agent: %d, rebate: %f, commission: %f,", agent, rebate, commission)
 
-			if agentData.agent == 0 {
+			if agentData.Agent == 0 || totalRebate >= 100 {
 				break
 			}
-			if totalRebate >= 100 {
-				break
-			}
-			agent = agentData.agent
+			agent = agentData.Agent
 
 		}
 	}
@@ -76,24 +62,7 @@ func IbDeposit(ticket *uint, vol *float32, symbol *string, account *uint) bool {
 
 	return true
 }
-func getAgent(account uint) agent {
-	db, err := sql.Open("mysql", "root:Prkayy_0651@/pfh")
-	if err != nil {
-		panic(err.Error()) // Just for example purpose. You should use proper error handling instead of panic
-	}
-	defer db.Close()
-	var tag agent
-	err = db.QueryRow("SELECT rebate, available, volume, agent FROM ib where account_no = ?", account).Scan(&tag.rebate, &tag.available, &tag.volume, &tag.agent)
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
-	}
-	return agent{
-		rebate:    tag.rebate,
-		available: tag.available,
-		volume:    tag.volume,
-		agent:     tag.agent,
-	}
-}
+
 
 func getPip(symbol string) float32 {
 	symbol = strings.Trim(symbol, ".ecn")
