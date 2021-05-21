@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/prakash-gitweb/go/lib"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type order struct {
