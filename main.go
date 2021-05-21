@@ -2,9 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/prakash-gitweb/go/lib"
-	"database/sql"
-	_ "github.com/go-sql-driver/mysql"
 )
 
 type order struct {
@@ -21,6 +18,6 @@ func main() {
 		symbol:  "EURUSD.ecn",
 		account: 444499,
 	}
-	execute := lib.IbDeposit(&closed.ticket, &closed.account, &closed.symbol, &closed.volume)
+	execute := IbDeposit(&closed.ticket, &closed.account, &closed.symbol, &closed.volume)
 	fmt.Println(execute)
 }

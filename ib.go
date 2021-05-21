@@ -1,10 +1,9 @@
-package lib
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/prakash-gitweb/go/model"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -33,19 +32,19 @@ func IbDeposit(ticket *int, account *int, symbol *string, vol *int) bool {
 	logger := log.New(f, "", log.LstdFlags)
 	logger.Println("ticket:", *ticket, "account:", *account, "symbol:", *symbol, "volume:", volume)
 	
-	a := model.GetAccount(account) // Rebate distribution starts
+	a := GetAccount(account) // Rebate distribution starts
 	if a.Agent > 0 {
 		var totalRebate float32
 		var y float32
 		agent := a.Agent
 		for {
-			agentData := model.GetAgentOfAgent(&agent)
+			agentData := GetAgentOfAgent(&agent)
 			x := agentData.Rebate
 			rebate := x - y
 			pip := getPip(*symbol)
 			commission := pip * volume * rebate / 100
-			model.UpdateAgent(&agent, &commission, &volume)
-			model.CreateOrUpdateAgentTx(&agent, account, &commission, &volume)
+			UpdateAgent(&agent, &commission, &volume)
+			CreateOrUpdateAgentTx(&agent, account, &commission, &volume)
 			y = x
 			totalRebate += rebate
 			fmt.Println(totalRebate)
