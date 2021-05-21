@@ -1,4 +1,4 @@
-package main
+package lib
 
 import (
 	"database/sql"
@@ -7,7 +7,7 @@ import (
 
 func dbConnect() *sql.DB {
 	// Open database connection
-	db, err := sql.Open("mysql", "root:Prkayy_0651@/pfh")
+	db, err := sql.Open("mysql", "root:Prkayy_0651@tcp(127.0.0.1:3306)/pfh")
 	if err != nil {
 		panic(err.Error())
 	}
